@@ -1,0 +1,603 @@
+{
+  "name": "Complete ZEROCODE Empire Machine",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zerocode-empire",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "ZEROCODE Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 460],
+      "webhookId": "zerocode-empire-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.user_prompt}}",
+              "operation": "contains",
+              "value2": "ZEROCODE"
+            }
+          ]
+        }
+      },
+      "id": "check-trigger",
+      "name": "Check ZEROCODE Trigger",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 460]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "You are an expert business advisor and content creator. Create comprehensive, valuable insights for entrepreneurs and business professionals. Focus on actionable strategies and practical advice."
+            },
+            {
+              "role": "user", 
+              "message": "={{$node['ZEROCODE Webhook'].json['user_prompt'].replace('ZEROCODE:', '').trim()}}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 2000
+        }
+      },
+      "id": "generate-content",
+      "name": "Generate Expert Content",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [680, 460]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "Create compelling hook summaries that grab attention. Focus on the biggest benefit or transformation. Make it irresistible for social media."
+            },
+            {
+              "role": "user",
+              "message": "Create a powerful hook for this content:\n\nPrompt: {{$node['ZEROCODE Webhook'].json['user_prompt']}}\n\nContent: {{$node['Generate Expert Content'].json['choices'][0]['message']['content']}}\n\nMake it compelling for social media and email."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 150
+        }
+      },
+      "id": "create-hook",
+      "name": "Create Hook Summary", 
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [900, 260]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create", 
+        "model": "gpt-4",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "Create exactly 3 Twitter thread tweets. Format as: THREAD 1: [content] | THREAD 2: [content] | THREAD 3: [content]. Each under 280 characters with engagement optimization."
+            },
+            {
+              "role": "user",
+              "message": "Create Twitter thread:\n\nContent: {{$node['Generate Expert Content'].json['choices'][0]['message']['content']}}\n\nHook: {{$node['Create Hook Summary'].json['choices'][0]['message']['content']}}\n\nMake engaging with hashtags."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 500
+        }
+      },
+      "id": "create-twitter",
+      "name": "Create Twitter Thread",
+      "type": "n8n-nodes-base.openAi", 
+      "typeVersion": 1,
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4", 
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "Create viral TikTok video scripts for AI avatars. Include timing, visual cues, and hooks that stop scrolling. Make it energetic and engaging."
+            },
+            {
+              "role": "user",
+              "message": "Create TikTok script:\n\nContent: {{$node['Generate Expert Content'].json['choices'][0]['message']['content']}}\n\nHook: {{$node['Create Hook Summary'].json['choices'][0]['message']['content']}}\n\nRequirements: 15-45 seconds, strong hook, call to action."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 600
+        }
+      },
+      "id": "create-tiktok",
+      "name": "Create TikTok Script",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1, 
+      "position": [900, 660]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system", 
+              "message": "Create engaging email content for business professionals. Include compelling subject line, valuable insights, and strong call to action."
+            },
+            {
+              "role": "user",
+              "message": "Create email:\n\nContent: {{$node['Generate Expert Content'].json['choices'][0]['message']['content']}}\n\nHook: {{$node['Create Hook Summary'].json['choices'][0]['message']['content']}}\n\nInclude: subject line, greeting, insights, CTA, signature."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 800
+        }
+      },
+      "id": "create-email",
+      "name": "Create Email Content",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [900, 860]
+    },
+    {
+      "parameters": {
+        "url": "https://picsum.photos/1200/630",
+        "options": {}
+      },
+      "id": "get-image",
+      "name": "Get Social Image",
+      "type": "n8n-nodes-base.httpRequest", 
+      "typeVersion": 3,
+      "position": [900, 1060]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.synthesia.io/v2/videos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SYNTHESIA_API_KEY"
+            },
+            {
+              "name": "Content-Type", 
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"test\": false,\n  \"visibility\": \"private\",\n  \"aspectRatio\": \"9:16\",\n  \"title\": \"ZEROCODE Content\",\n  \"description\": \"Auto-generated from ZEROCODE system\",\n  \"scenes\": [\n    {\n      \"background\": {\n        \"type\": \"color\",\n        \"value\": \"#1a1a2e\"\n      },\n      \"elements\": [\n        {\n          \"type\": \"avatar\",\n          \"avatar\": \"anna_costume1_cameraA\",\n          \"script\": \"{{$node['Create TikTok Script'].json['choices'][0]['message']['content']}}\",\n          \"position\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"z\": 1\n          }\n        }\n      ]\n    }\n  ]\n}"
+      },
+      "id": "create-video",
+      "name": "Create AI Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1120, 660]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process all generated content\nconst originalPrompt = $node['ZEROCODE Webhook'].json.user_prompt;\nconst expertContent = $node['Generate Expert Content'].json.choices[0].message.content;\nconst hookSummary = $node['Create Hook Summary'].json.choices[0].message.content;\nconst twitterThread = $node['Create Twitter Thread'].json.choices[0].message.content;\nconst tiktokScript = $node['Create TikTok Script'].json.choices[0].message.content;\nconst emailContent = $node['Create Email Content'].json.choices[0].message.content;\nconst videoData = $node['Create AI Video'].json;\n\n// Parse Twitter threads\nconst tweetParts = twitterThread.split('|').map(part => part.trim());\nconst threads = [];\n\nfor (let part of tweetParts) {\n  const threadMatch = part.match(/THREAD \\d+: (.+)/);\n  if (threadMatch) {\n    threads.push(threadMatch[1].trim().substring(0, 270));\n  }\n}\n\n// Ensure 3 threads\nwhile (threads.length < 3) {\n  threads.push('Follow for more business insights! 🚀');\n}\n\n// Parse email\nconst emailLines = emailContent.split('\\n');\nconst subjectLine = emailLines.find(line => line.toLowerCase().includes('subject')) || hookSummary;\nconst emailBody = emailContent.replace(/.*subject.*\\n/i, '').trim();\n\n// Generate timestamps\nconst now = new Date();\nconst sessionId = now.getTime().toString();\nconst tweetTime = new Date(now.getTime() + 15 * 60 * 1000);\nconst emailTime = new Date(now.getTime() + 30 * 60 * 1000);\n\n// Determine theme\nconst theme = originalPrompt.toLowerCase().includes('productivity') ? 'Productivity' :\n             originalPrompt.toLowerCase().includes('business') ? 'Business' :\n             originalPrompt.toLowerCase().includes('marketing') ? 'Marketing' :\n             originalPrompt.toLowerCase().includes('leadership') ? 'Leadership' :\n             originalPrompt.toLowerCase().includes('finance') ? 'Finance' :\n             'Business Insights';\n\nconst mediumTitle = hookSummary + ' - ' + theme + ' for Entrepreneurs';\n\nreturn {\n  sessionId: sessionId,\n  timestamp: now.toISOString(),\n  date: now.toISOString().split('T')[0],\n  originalPrompt: originalPrompt,\n  cleanPrompt: originalPrompt.replace('ZEROCODE:', '').trim(),\n  expertContent: expertContent,\n  hookSummary: hookSummary,\n  theme: theme,\n  thread1: threads[0],\n  thread2: threads[1],\n  thread3: threads[2],\n  tiktokScript: tiktokScript,\n  emailSubject: subjectLine.replace(/.*subject:?\\s*/i, '').trim(),\n  emailBody: emailBody,\n  mediumTitle: mediumTitle,\n  imageUrl: 'https://picsum.photos/1200/630',\n  videoId: videoData.id || null,\n  videoStatus: videoData.status || 'pending',\n  tweetScheduleTime: tweetTime.toISOString(),\n  emailScheduleTime: emailTime.toISOString(),\n  wordCount: expertContent.split(' ').length,\n  platforms: ['twitter', 'tiktok', 'blog', 'email'],\n  contentType: 'zerocode_session'\n};"
+      },
+      "id": "process-content",
+      "name": "Process All Content", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1340, 460]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.tweethunter.io/v1/tweets/schedule",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_TWEETHUNTER_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"content\": \"{{$json.thread1}}\",\n  \"media_urls\": [\"{{$json.imageUrl}}\"],\n  \"scheduled_at\": \"{{$json.tweetScheduleTime}}\",\n  \"thread_tweets\": [\n    {\n      \"content\": \"{{$json.thread2}}\"\n    },\n    {\n      \"content\": \"{{$json.thread3}}\"\n    }\n  ]\n}"
+      },
+      "id": "schedule-twitter",
+      "name": "Schedule Twitter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1560, 260]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format blog post for publishing\nconst data = $node['Process All Content'].json;\n\nconst slug = data.cleanPrompt\n  .toLowerCase()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .substring(0, 60);\n\nconst formattedBody = '<h2>The Challenge</h2>\\n<p>' + data.hookSummary + '</p>\\n\\n<h2>The Solution</h2>\\n' + \n  data.expertContent.split('\\n\\n').map(function(paragraph) {\n    return paragraph.trim() ? '<p>' + paragraph.trim() + '</p>' : '';\n  }).filter(function(p) { return p; }).join('\\n') + \n  '\\n\\n<h2>Key Takeaways</h2>\\n<ul>\\n<li>Leverage automation to scale your efforts</li>\\n<li>Focus on high-value activities</li>\\n<li>Build systems that compound results</li>\\n</ul>\\n\\n<h2>Next Steps</h2>\\n<p>Ready to implement? Start with one platform and expand.</p>';\n\nconst blogPost = {\n  title: data.mediumTitle,\n  author: 'Michael Savvick',\n  published_date: new Date().toISOString().split('T')[0],\n  summary: data.hookSummary,\n  meta_description: data.hookSummary.substring(0, 150) + '...',\n  body: formattedBody,\n  tags: [data.theme, 'ZeroCode', 'Automation', 'Business'],\n  canonical_url: 'https://savvick.com/blog/' + slug,\n  featured_image_url: data.imageUrl,\n  session_id: data.sessionId\n};\n\nreturn { blogPost: blogPost, slug: slug };"
+      },
+      "id": "format-blog",
+      "name": "Format Blog Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1560, 460]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "YOUR_BLOG_ENDPOINT",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_BLOG_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{$json.blogPost}}"
+      },
+      "id": "publish-blog",
+      "name": "Publish Blog Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1780, 460]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.convertkit.com/v3/broadcasts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json", 
+        "jsonBody": "={\n  \"api_key\": \"YOUR_CONVERTKIT_API_KEY\",\n  \"subject\": \"{{$json.emailSubject}}\",\n  \"content\": \"{{$json.emailBody}}\",\n  \"description\": \"ZEROCODE automated email\",\n  \"public\": false,\n  \"send_at\": \"{{$json.emailScheduleTime}}\"\n}"
+      },
+      "id": "send-email",
+      "name": "Send Email Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1560, 660]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Create proof of work entry\nconst data = $node['Process All Content'].json;\nconst content = $node['Generate Expert Content'].json.choices[0].message.content;\n\nconst categories = [];\nconst contentLower = (data.cleanPrompt + ' ' + content).toLowerCase();\n\nif (contentLower.includes('productivity')) categories.push('Productivity');\nif (contentLower.includes('marketing')) categories.push('Marketing');\nif (contentLower.includes('business')) categories.push('Business');\nif (contentLower.includes('automation')) categories.push('Automation');\nif (categories.length === 0) categories.push('General Business');\n\nconst tags = [data.theme, 'ZeroCode', 'AI-Generated'];\n\nconst proofEntry = {\n  timestamp: new Date().toISOString(),\n  date: new Date().toISOString().split('T')[0],\n  session_id: data.sessionId,\n  zerocode_input: data.originalPrompt,\n  chatgpt_output: content,\n  title: data.mediumTitle,\n  summary: data.hookSummary,\n  categories: categories,\n  tags: tags,\n  word_count: content.split(' ').length,\n  platforms_activated: ['Twitter', 'TikTok', 'Blog', 'Email'],\n  content_type: 'ZEROCODE_Generation',\n  theme: data.theme,\n  status: 'published',\n  visibility: 'public'\n};\n\nreturn { proofEntry: proofEntry };"
+      },
+      "id": "format-proof",
+      "name": "Format Proof of Work",
+      "type": "n8n-nodes-base.code", 
+      "typeVersion": 1,
+      "position": [1560, 860]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "YOUR_PROOF_ENDPOINT",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization", 
+              "value": "Bearer YOUR_PROOF_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{$json.proofEntry}}"
+      },
+      "id": "post-proof",
+      "name": "Post Proof of Work",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1780, 860]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"🚀 ZEROCODE EMPIRE ACTIVATED!\",\n  \"session_id\": \"{{$node['Process All Content'].json.sessionId}}\",\n  \"content_summary\": {\n    \"question\": \"{{$node['Process All Content'].json.cleanPrompt}}\",\n    \"theme\": \"{{$node['Process All Content'].json.theme}}\",\n    \"word_count\": {{$node['Process All Content'].json.wordCount}},\n    \"hook\": \"{{$node['Process All Content'].json.hookSummary}}\"\n  },\n  \"platforms\": {\n    \"twitter\": {\n      \"threads\": 3,\n      \"scheduled_for\": \"{{$node['Process All Content'].json.tweetScheduleTime}}\"\n    },\n    \"tiktok\": {\n      \"video_created\": true,\n      \"video_id\": \"{{$node['Process All Content'].json.videoId}}\"\n    },\n    \"blog\": {\n      \"published\": true,\n      \"title\": \"{{$node['Process All Content'].json.mediumTitle}}\"\n    },\n    \"email\": {\n      \"scheduled_for\": \"{{$node['Process All Content'].json.emailScheduleTime}}\"\n    },\n    \"proof_of_work\": {\n      \"documented\": true\n    }\n  },\n  \"next_steps\": [\n    \"✅ Content generated and processed\",\n    \"✅ Twitter thread scheduled\",\n    \"🎬 TikTok video in production\",\n    \"📝 Blog post published\",\n    \"📧 Email campaign scheduled\",\n    \"📊 Proof of work documented\"\n  ]\n}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2000, 460]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"ZEROCODE trigger required\",\n  \"instructions\": \"Start your prompt with 'ZEROCODE:'\",\n  \"example\": \"ZEROCODE: What are the best productivity tips?\",\n  \"platforms\": [\"Twitter\", \"TikTok\", \"Blog\", \"Email\"]\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 660]
+    }
+  ],
+  "connections": {
+    "ZEROCODE Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check ZEROCODE Trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check ZEROCODE Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Expert Content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Expert Content": {
+      "main": [
+        [
+          {
+            "node": "Create Hook Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Twitter Thread",
+            "type": "main", 
+            "index": 0
+          },
+          {
+            "node": "Create TikTok Script",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Email Content",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Social Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Hook Summary": {
+      "main": [
+        [
+          {
+            "node": "Process All Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Twitter Thread": {
+      "main": [
+        [
+          {
+            "node": "Process All Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create TikTok Script": {
+      "main": [
+        [
+          {
+            "node": "Create AI Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Email Content": {
+      "main": [
+        [
+          {
+            "node": "Process All Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Social Image": {
+      "main": [
+        [
+          {
+            "node": "Process All Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create AI Video": {
+      "main": [
+        [
+          {
+            "node": "Process All Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process All Content": {
+      "main": [
+        [
+          {
+            "node": "Schedule Twitter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Blog Post",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Campaign",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Proof of Work",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Twitter": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Publish Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Campaign": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Proof of Work": {
+      "main": [
+        [
+          {
+            "node": "Post Proof of Work",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Proof of Work": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-06-07T12:00:00.000Z",
+  "versionId": "1"
+}
